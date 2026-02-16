@@ -26,6 +26,24 @@ app.get('/', (req, res) =>{
   res.render('index');
 })
 
+app.post('/api/events', async (req, res)=>{
+  const {source, event_type, occurred_at, metadata} = req.body;
+  
+  try{
+    const events = await pool.query (
+      'INSERT INTO events (source, event_type, occurred_at, metadata) VALUES ($1, $2, $3, $4) RETURNING *',
+      [source, event_type, occurred_at, metadata]
+    );
+    res.status(201).json (events.rows[0]);
+    
+  }catch (err){
+    console.error('Error getting events:', err);
+    res.status(500).json({error:'Failed to save event'})
+    
+  }
+
+}) 
+
 
 app.listen(PORT, () => {
   console.log(`listening on port${PORT}`)
