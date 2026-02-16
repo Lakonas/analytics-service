@@ -42,9 +42,21 @@ app.post('/api/events', async (req, res)=>{
     
   }
 
-}) 
+})
 
+app.get('/api/events', async (req, res) => {
+  try {
+    const recents = await pool.query(
+      'SELECT * FROM events ORDER BY occurred_at DESC LIMIT 20'
+    );
+    res.json(recents.rows);
+  } catch (err) {
+    console.error('Error getting events:', err);
+    res.status(500).json({ error: 'Failed to get recent events' });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`listening on port${PORT}`)
 })
+
