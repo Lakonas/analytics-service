@@ -14,7 +14,7 @@ pool.query('SELECT NOW()')
 
 
 
-
+//Middleware
 app.set('view engine', 'ejs');
 app.use(express.urlencoded ({extended:true}));
 app.use(express.static('public'));
@@ -22,9 +22,30 @@ app.use(express.json())
 app.use(morgan('dev'));
 app.use(cors());
 
-app.get('/', (req, res) =>{
-  res.render('index');
-})
+app.get('/', async (req, res) => {
+  try {
+    const total = await pool.query('SELECT COUNT(*) FROM events');
+    const today = await pool.query('SELECT COUNT(*) FROM events WHERE occurred_at::date = CURRENT_DATE');
+    const sources = await pool.query('SELECT COUNT(DISTINCT source) FROM events');
+    const topEvent = await pool.query('SELECT event_type, COUNT(*) FROM events GROUP BY event_type ORDER BY count DESC LIMIT 1');
+    const recents = await pool.query('SELECT * FROM events ORDER BY occurred_at DESC LIMIT 20');
+    const daily = await pool.query('SELECT source, occurred_at::date AS day, COUNT(*) FROM events GROUP BY source, occurred_at::date ORDER BY day, source');
+    const topStats = await pool.query('SELECT event_type, COUNT(*) AS event_count FROM events GROUP BY event_type ORDER BY event_count DESC');
+
+    res.render('index', {
+      total: total.rows[0].count,
+      today: today.rows[0].count,
+      sources: sources.rows[0].count,
+      topEvent: topEvent.rows[0],
+      recents: recents.rows,
+      daily: daily.rows,
+      topStats: topStats.rows
+    });
+  } catch (err) {
+    console.error('Error getting data:', err);
+    res.status(500).send('Server error');
+  }
+});
 
 app.post('/api/events', async (req, res)=>{
   const {source, event_type, occurred_at, metadata} = req.body;
@@ -104,7 +125,9 @@ app.get('/api/stats/top', async (req, res)=>{
     console.error('Error getting top stats', err)
     res.status(500).json({ error: 'Failed to get stats'});
   }
-})
+});
+
+
 
 app.listen(PORT, () => {
   console.log(`listening on port${PORT}`)

@@ -7,5 +7,31 @@
 </head>
 <body>
   <h1>HELLO AND WELCOME TO ANALYTICS</h1>
+
+  <div>
+    <h1>SUMMARY</h1>
+    <div>total <%= total %></div>
+    <div>Today <%= today %></div>
+    <div>Sources <%= sources %></div>
+    <div>Top Event: <%= topEvent.event_type %> (<%= topEvent.count %> times)</div>
+    <div>
+      <h2>Recent Events</h2>
+      <% recents.forEach(event => { %>
+        <li><%= event.source %> - <%= event.event_type %> - <%= event.occurred_at %></li>
+      <% }) %>
+    </div>
+    <div>
+      <h2>Top Stats</h2>
+      <% topStats.forEach(event => { %>
+        <li><%= event.event_type %> - <%= event.event_count %></li>
+      <% }) %>
+    </div>
+    <div>
+      <h2>Daily Stats</h2>
+      <% daily.forEach(event => { %>
+        <li><%= event.source %> - <%= event.day %> - <%= event.count %></li>
+      <% }) %>
+    </div>
+  </div>
 </body>
 </html>
