@@ -86,7 +86,25 @@ app.get('/api/stats/daily', async (req, res) => {
     console.error('Error getting daily stats:', err);
     res.status(500).json({ error: 'Failed to get daily stats' });
   }
-});                     
+});  
+
+app.get('/api/stats/top', async (req, res)=>{
+  try{
+    const topStats = await pool.query(`SELECT 
+                    event_type,
+                    COUNT(*) AS event_count
+                  FROM events
+                  GROUP BY event_type
+                  ORDER BY event_count DESC;
+                  `
+
+    );
+    res.json(topStats.rows)
+  }catch (err){
+    console.error('Error getting top stats', err)
+    res.status(500).json({ error: 'Failed to get stats'});
+  }
+})
 
 app.listen(PORT, () => {
   console.log(`listening on port${PORT}`)
