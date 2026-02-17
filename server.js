@@ -56,6 +56,38 @@ app.get('/api/events', async (req, res) => {
   }
 });
 
+app.get('/api/stats/summary', async (req, res) => {
+  try {
+    const total = await pool.query('SELECT COUNT(*) FROM events');
+    const today = await pool.query('SELECT COUNT(*) FROM events WHERE occurred_at::date = CURRENT_DATE');
+    const sources = await pool.query('SELECT COUNT(DISTINCT source) FROM events');
+    const topEvent = await pool.query('SELECT event_type, COUNT(*) FROM events GROUP BY event_type ORDER BY count DESC LIMIT 1');
+
+    res.json({
+      total_events: total.rows[0].count,
+      events_today: today.rows[0].count,
+      active_sources: sources.rows[0].count,
+      top_event: topEvent.rows[0]
+    });
+  } catch (err) {
+    console.error('Error getting stats:', err);
+    res.status(500).json({ error: 'Failed to get stats' });
+  }
+});
+
+app.get('/api/stats/daily', async (req, res) => {
+  try {
+    const daily = await pool.query(`SELECT source, occurred_at::date AS day, COUNT(*) 
+                                    FROM events 
+                                    GROUP BY source, occurred_at::date 
+                                    ORDER BY day, source`);
+    res.json(daily.rows);
+  } catch (err) {
+    console.error('Error getting daily stats:', err);
+    res.status(500).json({ error: 'Failed to get daily stats' });
+  }
+});                     
+
 app.listen(PORT, () => {
   console.log(`listening on port${PORT}`)
 })
