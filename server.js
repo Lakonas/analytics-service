@@ -24,22 +24,27 @@ app.use(cors());
 
 app.get('/', async (req, res) => {
   try {
-    const total = await pool.query('SELECT COUNT(*) FROM events');
-    const today = await pool.query('SELECT COUNT(*) FROM events WHERE occurred_at::date = CURRENT_DATE');
-    const sources = await pool.query('SELECT COUNT(DISTINCT source) FROM events');
-    const topEvent = await pool.query('SELECT event_type, COUNT(*) FROM events GROUP BY event_type ORDER BY count DESC LIMIT 1');
-    const recents = await pool.query('SELECT * FROM events ORDER BY occurred_at DESC LIMIT 20');
-    const daily = await pool.query('SELECT source, occurred_at::date AS day, COUNT(*) FROM events GROUP BY source, occurred_at::date ORDER BY day, source');
-    const topStats = await pool.query('SELECT event_type, COUNT(*) AS event_count FROM events GROUP BY event_type ORDER BY event_count DESC');
+    const source = req.query.source;
+    const whereClause = source ? 'WHERE source = $1' : '';
+    const params = source ? [source] : [];
+
+    const total = await pool.query(`SELECT COUNT(*) FROM events ${whereClause}`, params);
+    const today = await pool.query(`SELECT COUNT(*) FROM events ${whereClause} ${source ? 'AND' : 'WHERE'} occurred_at::date = CURRENT_DATE`, params);
+    const sources = await pool.query('SELECT DISTINCT source FROM events');
+    const topEvent = await pool.query(`SELECT event_type, COUNT(*) FROM events ${whereClause} GROUP BY event_type ORDER BY count DESC LIMIT 1`, params);
+    const recents = await pool.query(`SELECT * FROM events ${whereClause} ORDER BY occurred_at DESC LIMIT 20`, params);
+    const daily = await pool.query(`SELECT source, occurred_at::date AS day, COUNT(*) FROM events ${whereClause} GROUP BY source, occurred_at::date ORDER BY day, source`, params);
+    const topStats = await pool.query(`SELECT event_type, COUNT(*) AS event_count FROM events ${whereClause} GROUP BY event_type ORDER BY event_count DESC`, params);
 
     res.render('index', {
       total: total.rows[0].count,
       today: today.rows[0].count,
-      sources: sources.rows[0].count,
+      sources: sources.rows,
       topEvent: topEvent.rows[0],
       recents: recents.rows,
       daily: daily.rows,
-      topStats: topStats.rows
+      topStats: topStats.rows,
+      currentSource: source || 'all'
     });
   } catch (err) {
     console.error('Error getting data:', err);

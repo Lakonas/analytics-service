@@ -3,35 +3,98 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Analytics Service</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <h1>HELLO AND WELCOME TO ANALYTICS</h1>
+  <header class="header">
+    <h1>⚡ Analytics Service</h1>
+    <p>Event analytics across all connected applications</p>
+  </header>
 
-  <div>
-    <h1>SUMMARY</h1>
-    <div>total <%= total %></div>
-    <div>Today <%= today %></div>
-    <div>Sources <%= sources %></div>
-    <div>Top Event: <%= topEvent.event_type %> (<%= topEvent.count %> times)</div>
-    <div>
+  <main class="dashboard">
+    <div class="filters">
+      <a href="/" class="filter-btn <%= currentSource === 'all' ? 'active' : '' %>">All Sources</a>
+      <% sources.forEach(s => { %>
+        <a href="/?source=<%= s.source %>" class="filter-btn <%= currentSource === s.source ? 'active' : '' %>"><%= s.source %></a>
+      <% }) %>
+    </div>
+
+    <section class="summary-cards">
+      <div class="card">
+        <span class="card-label">Total Events</span>
+        <span class="card-value"><%= total %></span>
+      </div>
+      <div class="card">
+        <span class="card-label">Events Today</span>
+        <span class="card-value"><%= today %></span>
+      </div>
+      <div class="card">
+        <span class="card-label">Active Sources</span>
+        <span class="card-value"><%= sources.length %></span>
+      </div>
+      <div class="card">
+        <span class="card-label">Top Event</span>
+        <span class="card-value"><%= topEvent.event_type %></span>
+        <span class="card-sub"><%= topEvent.count %> occurrences</span>
+      </div>
+    </section>
+
+    <section class="top-events">
+      <h2>Top Event Types</h2>
+      <ul class="top-list">
+        <% topStats.forEach(event => { %>
+          <li class="top-item">
+            <span class="top-name"><%= event.event_type %></span>
+            <span class="top-count"><%= event.event_count %></span>
+          </li>
+        <% }) %>
+      </ul>
+    </section>
+
+    <section class="recent-events">
       <h2>Recent Events</h2>
-      <% recents.forEach(event => { %>
-        <li><%= event.source %> - <%= event.event_type %> - <%= event.occurred_at %></li>
-      <% }) %>
-    </div>
-    <div>
-      <h2>Top Stats</h2>
-      <% topStats.forEach(event => { %>
-        <li><%= event.event_type %> - <%= event.event_count %></li>
-      <% }) %>
-    </div>
-    <div>
-      <h2>Daily Stats</h2>
-      <% daily.forEach(event => { %>
-        <li><%= event.source %> - <%= event.day %> - <%= event.count %></li>
-      <% }) %>
-    </div>
-  </div>
+      <table class="events-table">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Event Type</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% recents.forEach(event => { %>
+            <tr>
+              <td><span class="source-badge <%= event.source %>"><%= event.source %></span></td>
+              <td><%= event.event_type %></td>
+              <td><%= new Date(event.occurred_at).toLocaleString() %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="daily-stats">
+      <h2>Daily Volume</h2>
+      <table class="events-table">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Date</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% daily.forEach(event => { %>
+            <tr>
+              <td><span class="source-badge <%= event.source %>"><%= event.source %></span></td>
+              <td><%= new Date(event.day).toLocaleDateString() %></td>
+              <td><%= event.count %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </section>
+  </main>
 </body>
 </html>
