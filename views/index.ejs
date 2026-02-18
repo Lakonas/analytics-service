@@ -42,14 +42,18 @@
 
     <section class="top-events">
       <h2>Top Event Types</h2>
-      <ul class="top-list">
+      <div class="top-list">
+        <% const maxCount = topStats.length > 0 ? topStats[0].event_count : 1; %>
         <% topStats.forEach(event => { %>
-          <li class="top-item">
+          <div class="top-item">
             <span class="top-name"><%= event.event_type %></span>
+            <div class="top-bar-bg">
+              <div class="top-bar-fill" style="width: <%= (event.event_count / maxCount * 100) %>%"></div>
+            </div>
             <span class="top-count"><%= event.event_count %></span>
-          </li>
+          </div>
         <% }) %>
-      </ul>
+      </div>
     </section>
 
     <section class="recent-events">
@@ -94,6 +98,15 @@
           <% }) %>
         </tbody>
       </table>
+    </section>
+
+    <section class="endpoint-info">
+      <h2>Ingest Endpoint</h2>
+      <p>Send events from any application</p>
+      <div class="endpoint-url">
+        <span class="method-badge">POST</span>
+        <span>/api/events</span>
+      </div>
     </section>
   </main>
 </body>
